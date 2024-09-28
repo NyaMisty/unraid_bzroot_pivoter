@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# patches by misty
+
+echo '=================== Preparing to patch rc.S! ======================'
+
+cp /etc/rc.d/rc.S /etc/rc.d/rc.S_original
+
+sed -i '0,/^$/ s|^$|ensure_boot_ram_mount(){ mkdir -p /boot_ram; cp -v -n /boot/bz* /boot_ram; echo Pivot-mounting "$@"; /sbin/mount "$@"; }\n|' /etc/rc.d/rc.S
+
+sed -i 's|/sbin/mount\( .*\)/boot/|ensure_boot_ram_mount\1/boot_ram/|g' /etc/rc.d/rc.S
+
+echo '=================== Finished patching rc.S ======================'
+
+#diff /etc/rc.d/rc.S_original /etc/rc.d/rc.S # no diff
+cat /etc/rc.d/rc.S | grep ensure_boot_ram_mount
+
+echo '=================== Executing rc.S ======================'
+
+exec /etc/rc.d/rc.S
